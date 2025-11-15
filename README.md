@@ -1,8 +1,39 @@
-# Kirchhoff's Law Algorithm (KLA) - Python Implementation
+# Kirchhoff's Law Algorithm (KLA) - Python实现
 
-## 简介
+## 📋 简介
 
-这是 **Kirchhoff's Law Algorithm (KLA)** 的 Python 实现版本。KLA 是一种新颖的受物理启发的非参数元启发式优化算法。
+这是 **Kirchhoff's Law Algorithm (KLA)** 的 Python 实现版本。KLA 是一种新颖的受物理启发的非参数元启发式优化算法，具有warm-start初始化增强功能。
+
+## 📁 项目结构
+
+```
+KLA/
+├── src/                          # 核心源代码
+│   ├── __init__.py              # 包初始化
+│   ├── kla.py                   # KLA主算法
+│   ├── cost.py                  # 测试函数
+│   └── warmstart/               # Warm-start模块
+│       ├── __init__.py
+│       ├── meta_surrogate.py    # 元学习代理模型
+│       └── warm_start.py        # Warm-start初始化
+├── examples/                     # 示例代码
+│   ├── kla_warmstart_demo.py   # 完整演示程序
+│   └── test_improved_warmstart.py # 快速测试
+├── docs/                         # 文档
+│   ├── README_warmstart.md      # Warm-start详细文档
+│   ├── warmstart_analysis.md    # 问题分析
+│   ├── improvement_summary.md   # 改进总结
+│   └── warm-start改进.md        # 原始设计文档
+├── results/                      # 实验结果
+│   ├── kla_convergence.png
+│   └── warmstart_comparison_*.png
+├── models/                       # 训练好的模型
+│   └── surrogate_model.pkl
+├── tests/                        # 测试文件（待添加）
+├── requirements.txt              # 依赖包
+├── license.txt                   # 许可证
+└── README.md                     # 本文件
+```
 
 ## 作者
 
@@ -23,37 +54,26 @@ Artificial Intelligence Review.
 https://doi.org/10.1007/s10462-025-11289-5
 ```
 
-## 安装
+## 🚀 快速开始
 
-### 1. 安装依赖包
+### 1. 安装依赖
 
 ```bash
 pip install -r requirements.txt
 ```
 
-或者手动安装：
+主要依赖：
+- numpy >= 1.21.0
+- matplotlib >= 3.4.0
+- scikit-learn >= 1.0.0 (用于warm-start)
+- scipy >= 1.7.0 (用于warm-start)
 
-```bash
-pip install numpy matplotlib
-```
+### 2. 基本使用
 
-## 使用方法
-
-### 基本使用
-
-直接运行主程序：
-
-```bash
-python kla.py
-```
-
-这将在 3 个测试函数上运行 KLA 算法，每个函数独立执行 2 次。
-
-### 自定义使用
+#### 标准KLA算法
 
 ```python
-from kla import kla_optimize
-from cost import cost
+from src import kla_optimize, cost
 
 # 定义优化问题
 n_var = 30          # 决策变量数量
@@ -78,12 +98,53 @@ print(f"最优解: {best_sol.position}")
 print(f"最优成本: {best_sol.cost}")
 ```
 
-## 文件说明
+#### 使用Warm-start增强
 
-- **kla.py** - 主程序文件，包含 KLA 算法的实现
-- **cost.py** - 测试函数定义
-- **requirements.txt** - Python 依赖包列表
-- **license.txt** - 许可证文件
+```python
+from src import kla_optimize, cost
+from src.warmstart import MetaSurrogate, generate_meta_training_data
+
+# 训练surrogate模型（一次性）
+D_meta = generate_meta_training_data(n_tasks=50, n_samples_per_task=2000)
+surrogate = MetaSurrogate(model_type='mlp', hidden_layers=(256, 128, 64, 32))
+surrogate.train(D_meta)
+
+# 使用warm-start运行KLA
+best_sol, history = kla_optimize(
+    cost_function=cost,
+    n_var=30,
+    var_min=-100,
+    var_max=100,
+    max_it=3000,
+    n_pop=50,
+    func_num=1,
+    surrogate=surrogate,
+    use_warm_start=True,
+    warm_start_params={
+        'n_cand': 2000,
+        'alpha_mix': 0.5,
+        'sampling_method': 'lhs'
+    }
+)
+```
+
+### 3. 运行示例
+
+```bash
+# 快速测试
+python examples/test_improved_warmstart.py
+
+# 完整演示
+python examples/kla_warmstart_demo.py
+```
+
+## 📚 文档
+
+详细文档位于 `docs/` 目录：
+
+- **README_warmstart.md** - Warm-start功能完整指南
+- **warmstart_analysis.md** - 性能分析和问题讨论
+- **improvement_summary.md** - 改进措施总结
 
 ## 测试函数
 

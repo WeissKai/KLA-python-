@@ -34,7 +34,7 @@ https://doi.org/10.1007/s10462-025-11289-5
 
 import numpy as np
 import matplotlib.pyplot as plt
-from cost import cost
+from .cost import cost
 
 # 配置matplotlib支持中文显示
 plt.rcParams['font.sans-serif'] = ['SimHei', 'Microsoft YaHei', 'SimSun', 'KaiTi', 'FangSong']  # 中文字体
@@ -48,7 +48,8 @@ class Solution:
         self.cost = np.inf
 
 
-def kla_optimize(cost_function, n_var, var_min, var_max, max_it=3000, n_pop=50, func_num=1):
+def kla_optimize(cost_function, n_var, var_min, var_max, max_it=3000, n_pop=50, func_num=1,
+                surrogate=None, use_warm_start=False, warm_start_params=None):
     """
     基尔霍夫定律算法 (KLA) 优化器。
     
@@ -68,6 +69,16 @@ def kla_optimize(cost_function, n_var, var_min, var_max, max_it=3000, n_pop=50, 
         种群大小 (默认: 50)
     func_num : int
         测试函数编号 (默认: 1)
+    surrogate : MetaSurrogate, optional
+        训练好的元学习代理模型（用于warm-start）
+    use_warm_start : bool
+        是否使用warm-start初始化 (默认: False)
+    warm_start_params : dict, optional
+        warm-start参数字典，可包含:
+        - n_cand: 候选点数量
+        - alpha_mix: 随机混合比例
+        - diversity_threshold: 多样性阈值
+        - sampling_method: 采样方法
     
     返回:
     --------
@@ -91,9 +102,38 @@ def kla_optimize(cost_function, n_var, var_min, var_max, max_it=3000, n_pop=50, 
     # 创建初始种群
     best_cost_history = []
     
-    for i in range(n_pop):
-        pop[i].position = np.random.uniform(var_min, var_max, (1, n_var))
-        pop[i].cost = cost_function(pop[i].position, func_num)[0]
+    # 使用warm-start或随机初始化
+    if use_warm_start and surrogate is not None:
+        from .warmstart import warm_start_initialization
+        
+        # 设置默认参数
+        default_params = {
+            'n_cand': 20 * n_pop,
+            'alpha_mix': 0.3,
+            'diversity_threshold': None,
+            'sampling_method': 'uniform',
+            'verbose': True
+        }
+        
+        # 合并用户参数
+        if warm_start_params is not None:
+            default_params.update(warm_start_params)
+        
+        print("使用Warm-start初始化种群...")
+        search_space = (var_min, var_max, n_var)
+        initial_positions = warm_start_initialization(
+            surrogate, search_space, n_pop, **default_params
+        )
+        
+        # 为每个个体设置位置
+        for i in range(n_pop):
+            pop[i].position = initial_positions[i:i+1, :]
+            pop[i].cost = cost_function(pop[i].position, func_num)[0]
+    else:
+        # 传统随机初始化
+        for i in range(n_pop):
+            pop[i].position = np.random.uniform(var_min, var_max, (1, n_var))
+            pop[i].cost = cost_function(pop[i].position, func_num)[0]
         
         if pop[i].cost <= best_sol.cost:
             best_sol.position = pop[i].position.copy()

@@ -56,19 +56,24 @@ def cost(x, jj):
     
     # 1. 基本平移球面函数
     if jj == 1:
-        x_shifted = x - ps
+        # 使用固定的平移向量（原MATLAB代码中repmat(ps,1)意图是创建平移向量）
+        # 这里使用更合理的平移：每个维度平移1
+        shift = np.ones((1, D))
+        x_shifted = x - shift
         z = np.sum(x_shifted**2, axis=1)
     
     # 2. 基本 Schwefel 问题 1.2
     elif jj == 2:
-        x_shifted = x - ps
+        shift = np.ones((1, D))
+        x_shifted = x - shift
         z = np.zeros(ps)
         for i in range(D):
             z += np.sum(x_shifted[:, :i+1], axis=1)**2
     
     # 3. 带噪声的基本 Schwefel 问题 1.2
     elif jj == 3:
-        x_shifted = x - ps
+        shift = np.ones((1, D))
+        x_shifted = x - shift
         z = np.zeros(ps)
         for i in range(D):
             z += np.sum(x_shifted[:, :i+1], axis=1)**2

@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# PyCharm
+.idea/
+
+# Models and Results
+models/*.pkl
+results/*.png
+results/*.jpg
+results/*.pdf
+
+# Docs (analysis and internal documents)
+docs/warmstart_analysis.md
+docs/improvement_summary.md
+docs/warm-start改进.md
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MATLAB original files (optional, keep if needed for reference)
+# *.m
+
+# macOS
+__MACOSX/
